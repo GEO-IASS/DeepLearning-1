@@ -81,9 +81,14 @@ else
 				    lambda, sparsityParam, ...
 				    beta, trainData), ...
 				sae1Theta, options);
-  save sae1OptTheta.mat sae1OptTheta
+endif
+
+%  Saving 'sae1OptTheta' parameters in file 'sae1OptTheta.mat'
+if (! exist ("sae1OptTheta.mat", "file"))
+  save sae1OptTheta.mat sae1OptTheta;
   disp ("'sae1OptTheta' parameters saved in file 'sae1OptTheta.mat'.");
 endif
+
 
 % -------------------------------------------------------------------------
 
@@ -131,7 +136,11 @@ else
 				    lambda, sparsityParam, ...
 				    beta, sae1Features), ...
 				sae2Theta, options);
-  save sae2OptTheta.mat sae2OptTheta
+endif
+
+%  Saving 'sae2OptTheta' parameters in file 'sae2OptTheta.mat'
+if (! exist ("sae2OptTheta.mat", "file"))
+  save sae2OptTheta.mat sae2OptTheta;
   disp ("'sae2OptTheta' parameters saved in file 'sae2OptTheta.mat'.");
 endif
 
@@ -184,7 +193,11 @@ else
 				    numClasses, hiddenSizeL2, lambda, ...
 				    sae2Features, trainLabels), ...                                   
 				saeSoftmaxTheta, options);
-  save saeSoftmaxOptTheta.mat saeSoftmaxOptTheta
+endif
+
+%  Saving 'saeSoftmaxOptTheta' parameters in file 'saeSoftmaxOptTheta.mat'
+if (! exist ("saeSoftmaxOptTheta.mat", "file"))
+  save saeSoftmaxOptTheta.mat saeSoftmaxOptTheta;
   disp ("'saeSoftmaxOptTheta' parameters saved in file 'saeSoftmaxOptTheta.mat'.");
 endif
 
@@ -237,6 +250,10 @@ else
 					hiddenSizeL2, numClasses, netconfig, ...
 					lambda, trainData, trainLabels), ...                                   
 				    stackedAETheta, options);
+endif
+
+%  Saving 'stackedAEOptTheta' parameters in file 'stackedAEOptTheta.mat'
+if (! exist ("stackedAEOptTheta.mat", "file"))
   save stackedAEOptTheta.mat stackedAEOptTheta
   disp ("'stackedAEOptTheta' parameters saved in file 'stackedAEOptTheta.mat'.");
 endif
