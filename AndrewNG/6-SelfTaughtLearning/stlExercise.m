@@ -13,8 +13,8 @@
 %  allow your sparse autoencoder to get good filters; you do not need to 
 %  change the parameters below.
 
-DEBUG = true;   % Set DEBUG to true when debugging.
-%DEBUG = false;
+%DEBUG = true;   % Set DEBUG to true when debugging.
+DEBUG = false;
 
 inputSize  = 28 * 28;
 numLabels  = 5;
