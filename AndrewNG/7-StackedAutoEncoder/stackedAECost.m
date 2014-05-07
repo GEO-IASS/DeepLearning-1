@@ -7,14 +7,13 @@ function [ cost, grad ] = stackedAECost(theta, inputSize, hiddenSize, ...
 % finetuning.
                                          
 % theta: trained weights from the autoencoder
-% visibleSize: the number of input units
+% inputSize: the number of input units
 % hiddenSize:  the number of hidden units *at the 2nd layer*
 % numClasses:  the number of categories
 % netconfig:   the network configuration of the stack
 % lambda:      the weight regularization penalty
 % data: Our matrix containing the training data as columns.  So, data(:,i) is the i-th training example. 
-% labels: A vector containing labels, where labels(i) is the label for the
-% i-th training example
+% labels: A vector containing labels, where labels(i) is the label for the i-th training example
 
 
 %% Unroll softmaxTheta parameter
@@ -61,18 +60,38 @@ groundTruth = full(sparse(labels, 1:M, 1));
 %                match exactly that of the size of the matrices in stack.
 %
 
+% Step1: Perform a feedforward pass, computing the activations for layers L2, L3, 
+% up to the output layer, using the equations defining the forward propagation steps.
 
+% Creating cells to store input data and activations
+depth = numel(stack);
+z = cell(depth+1,1);
+a = cell(depth+1,1);
+error = cell(depth+1,1);
 
+% Computing activations for each hidden layer (feedForwardAutoencoder.m)
+a{1} = data;
+for d = 1:depth
+  z{d+1} = stack{d}.w * a{d} + repmat(stack{d}.b,1,M);
+  a{d+1} = sigmoid(z{d+1});
+end
 
+% Computing Softmax cost and gradients (softmaxCost.m)
+h = softmaxTheta*a{depth+1};            % Compute prediction matrix for each class 
+h = bsxfun(@minus, h, max(h, [], 1));   % Prevent overflow subtracting maximum theta from 
+                                        % each of theta terms before computing the exponential
+h = exp(h);                             % Precompute the exponential for each term 
+h = bsxfun(@rdivide, h, sum(h));        % Compute the propability matrix for each class
+cost = -1/numClasses*(sum(sum(groundTruth.*log(h)))) + lambda/2*(sum(sum(softmaxTheta.^2)));
+softmaxThetaGrad = -1/numClasses*((groundTruth - h)*a{depth+1}');
 
-
-
-
-
-
-
-
-
+% Computing errors and gradients (backpropagation)  
+error{depth+1} = -(softmaxTheta'*(groundTruth-h)) .* (a{depth+1}.*(1-a{depth+1}));
+for d = depth:-1:1
+  error{d} = (stack{d}.w'*error{d+1}) .* (a{d}.*(1-a{d}));
+  stackgrad{d}.w = (error{d+1}*(a{d}') ./ M) + (lambda * stack{d}.w);
+  stackgrad{d}.b = sum(error{d+1},2) ./ M;
+end
 
 
 % -------------------------------------------------------------------------
