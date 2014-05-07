@@ -11,9 +11,9 @@ function [cost, grad] = softmaxCost(theta, numClasses, inputSize, lambda, data, 
 % Unroll the parameters from theta
 theta = reshape(theta, numClasses, inputSize);
 
-numCases = size(data, 2);
+m = size(data, 2);
 
-groundTruth = full(sparse(labels, 1:numCases, 1));
+groundTruth = full(sparse(labels, 1:m, 1));
 cost = 0;
 
 thetagrad = zeros(numClasses, inputSize);
@@ -33,10 +33,10 @@ h = exp(h);
 h = bsxfun(@rdivide, h, sum(h));
 
 % Computing cost function with weight decay
-cost = -1/numCases*(sum(sum(groundTruth.*log(h)))) + lambda/2*(sum(sum(theta.^2)));
+cost = -1/m*(sum(sum(groundTruth.*log(h)))) + lambda/2*(sum(sum(theta.^2)));
 
 % Computing gradients
-thetagrad = -1/numCases*((groundTruth - h)*data');
+thetagrad = -1/m.*((groundTruth - h)*data') + lambda.*theta;
 
 
 % ------------------------------------------------------------------
