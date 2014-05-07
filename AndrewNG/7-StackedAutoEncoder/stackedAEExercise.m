@@ -168,28 +168,20 @@ stackedAETheta = [ saeSoftmaxOptTheta ; stackparams ];
 %  Instructions: Train the deep network, hidden size here refers to the '
 %                dimension of the input to the classifier, which corresponds 
 %                to "hiddenSizeL2".
-%
-%
 
+addpath minFunc/;               % Use minFunc to minimize the function
+options.maxIter = 400;          % Maximum number of iterations of L-BFGS to run 
+options.Method = 'lbfgs';       % Use L-BFGS to optimize softmax cost
+minFuncOptions.display = 'on';
+options.useMex = 0;             % Bugfix: error: 'lbfgsC' undefined near line 559 column 25
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+[stackedAEOptTheta, cost] = minFunc( @(p) stackedAECost(p, inputSize, ...
+				      hiddenSizeL2, numClasses, netconfig, ...
+				      lambda, trainData, trainLabels), ...                                   
+				  stackedAETheta, options);
 
 
 % -------------------------------------------------------------------------
-
-
 
 %%======================================================================
 %% STEP 6: Test 
