@@ -38,7 +38,6 @@ cost = 0; % You need to compute this
 M = size(data, 2);
 groundTruth = full(sparse(labels, 1:M, 1));
 
-
 %% --------------------------- YOUR CODE HERE -----------------------------
 %  Instructions: Compute the cost function and gradient vector for 
 %                the stacked autoencoder.
@@ -67,7 +66,7 @@ groundTruth = full(sparse(labels, 1:M, 1));
 depth = numel(stack);
 z = cell(depth+1,1);
 a = cell(depth+1,1);
-error = cell(depth+1,1);
+delta = cell(depth+1,1);
 
 % Computing activations for each hidden layer (feedForwardAutoencoder.m)
 a{1} = data;
@@ -82,17 +81,17 @@ h = bsxfun(@minus, h, max(h, [], 1));   % Prevent overflow subtracting maximum t
                                         % each of theta terms before computing the exponential
 h = exp(h);                             % Precompute the exponential for each term 
 h = bsxfun(@rdivide, h, sum(h));        % Compute the propability matrix for each class
-cost = -1/numClasses*(sum(sum(groundTruth.*log(h)))) + lambda/2*(sum(sum(softmaxTheta.^2)));
-softmaxThetaGrad = -1/numClasses*((groundTruth - h)*a{depth+1}');
+cost = -1/M*(sum(sum(groundTruth.*log(h)))) + lambda/2*(sum(sum(softmaxTheta.^2)));
+softmaxThetaGrad = -1/M.*((groundTruth-h)*(a{depth+1}')) + lambda.*softmaxTheta;
 
 % Computing errors and gradients (backpropagation)  
-error{depth+1} = -(softmaxTheta'*(groundTruth-h)) .* (a{depth+1}.*(1-a{depth+1}));
+delta{depth+1} = -(softmaxTheta'*(groundTruth-h)) .* (a{depth+1}.*(1-a{depth+1}));
 for d = depth:-1:1
-  error{d} = (stack{d}.w'*error{d+1}) .* (a{d}.*(1-a{d}));
-  stackgrad{d}.w = (error{d+1}*(a{d}') ./ M) + (lambda * stack{d}.w);
-  stackgrad{d}.b = sum(error{d+1},2) ./ M;
+  delta{d} = (stack{d}.w'*delta{d+1}) .* (a{d}.*(1-a{d}));
+  stackgrad{d}.w = ((delta{d+1}*(a{d}'))./M);
+  stackgrad{d}.b = sum(delta{d+1},2)./M;
 end
-
+  
 
 % -------------------------------------------------------------------------
 
