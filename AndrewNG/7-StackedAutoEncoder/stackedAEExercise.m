@@ -49,27 +49,41 @@ trainLabels(trainLabels == 0) = 10; % Remap 0 to 10 since our labels need to sta
 %  If you've correctly implemented sparseAutoencoderCost.m, you don't need
 %  to change anything here.
 
+%  Check if file 'sae1OptTheta.mat' exist
+if (exist ("sae1OptTheta.mat", "file"))
+  load sae1OptTheta.mat;
+else
+  disp ("File 'sae1OptTheta.mat' not found.");
+endif
 
-%  Randomly initialize the parameters
-sae1Theta = initializeParameters(hiddenSizeL1, inputSize);
+%  Check if var 'sae1OptTheta' exist
+if (exist ("sae1OptTheta", "var"))
+  disp ("'sae1OptTheta' parameters loaded from file 'sae1OptTheta.mat'.");
+else
+  disp ("Training the 1st layer of Stacked AutoEncoder ...");
 
-%% ---------------------- YOUR CODE HERE  ---------------------------------
-%  Instructions: Train the first layer sparse autoencoder, this layer has
-%                an hidden size of "hiddenSizeL1"
-%                You should store the optimal parameters in sae1OptTheta
+  %  Randomly initialize the parameters
+  sae1Theta = initializeParameters(hiddenSizeL1, inputSize);
 
-addpath minFunc/;               % Use minFunc to minimize the cost function of sparse autoencoder
-options.Method = 'lbfgs';       % Use L-BFGS to optimize sparse autoencoder cost
-options.maxIter = 400;          % Maximum number of iterations of L-BFGS to run 
-options.display = 'on';
-options.useMex = 0;             % Bugfix: error: 'lbfgsC' undefined near line 559 column 25
+  %% ---------------------- YOUR CODE HERE  ---------------------------------
+  %  Instructions: Train the first layer sparse autoencoder, this layer has
+  %                an hidden size of "hiddenSizeL1"
+  %                You should store the optimal parameters in sae1OptTheta
 
-[sae1OptTheta, cost] = minFunc( @(p) sparseAutoencoderCost(p, ...
-                                   inputSize, hiddenSizeL1, ...
-                                   lambda, sparsityParam, ...
-                                   beta, trainData), ...
-                              sae1Theta, options);
+  addpath minFunc/;               % Use minFunc to minimize the cost function of sparse autoencoder
+  options.Method = 'lbfgs';       % Use L-BFGS to optimize sparse autoencoder cost
+  options.maxIter = 400;          % Maximum number of iterations of L-BFGS to run 
+  options.display = 'on';
+  options.useMex = 0;             % Bugfix: error: 'lbfgsC' undefined near line 559 column 25
 
+  [sae1OptTheta, cost] = minFunc( @(p) sparseAutoencoderCost(p, ...
+				    inputSize, hiddenSizeL1, ...
+				    lambda, sparsityParam, ...
+				    beta, trainData), ...
+				sae1Theta, options);
+  save sae1OptTheta.mat sae1OptTheta
+  disp ("'sae1OptTheta' parameters saved in file 'sae1OptTheta.mat'.");
+endif
 
 % -------------------------------------------------------------------------
 
@@ -83,27 +97,43 @@ options.useMex = 0;             % Bugfix: error: 'lbfgsC' undefined near line 55
 [sae1Features] = feedForwardAutoencoder(sae1OptTheta, hiddenSizeL1, ...
                                         inputSize, trainData);
 
-%  Randomly initialize the parameters
-sae2Theta = initializeParameters(hiddenSizeL2, hiddenSizeL1);
+%  Check if file 'sae2OptTheta.mat' exist
+if (exist ("sae2OptTheta.mat", "file"))
+  load sae2OptTheta.mat;
+else
+  disp ("File 'sae2OptTheta.mat' not found.");
+endif
 
-%% ---------------------- YOUR CODE HERE  ---------------------------------
-%  Instructions: Train the second layer sparse autoencoder, this layer has
-%                an hidden size of "hiddenSizeL2" and an inputsize of
-%                "hiddenSizeL1"
-%
-%                You should store the optimal parameters in sae2OptTheta
+%  Check if var 'sae2OptTheta' exist
+if (exist ("sae2OptTheta", "var"))
+  disp ("'sae2OptTheta' parameters loaded from file 'sae2OptTheta.mat'.");
+else
+  disp ("Training the 2nd layer of Stacked AutoEncoder ...");
 
-addpath minFunc/;               % Use minFunc to minimize the cost function of sparse autoencoder
-options.Method = 'lbfgs';       % Use L-BFGS to optimize sparse autoencoder cost
-options.maxIter = 400;          % Maximum number of iterations of L-BFGS to run 
-options.display = 'on';
-options.useMex = 0;             % Bugfix: error: 'lbfgsC' undefined near line 559 column 25
+  %  Randomly initialize the parameters
+  sae2Theta = initializeParameters(hiddenSizeL2, hiddenSizeL1);
 
-[sae2OptTheta, cost] = minFunc( @(p) sparseAutoencoderCost(p, ...
-                                   hiddenSizeL1, hiddenSizeL2, ...
-                                   lambda, sparsityParam, ...
-                                   beta, sae1Features), ...
-                              sae2Theta, options);
+  %% ---------------------- YOUR CODE HERE  ---------------------------------
+  %  Instructions: Train the second layer sparse autoencoder, this layer has
+  %                an hidden size of "hiddenSizeL2" and an inputsize of
+  %                "hiddenSizeL1"
+  %
+  %                You should store the optimal parameters in sae2OptTheta
+
+  addpath minFunc/;               % Use minFunc to minimize the cost function of sparse autoencoder
+  options.Method = 'lbfgs';       % Use L-BFGS to optimize sparse autoencoder cost
+  options.maxIter = 400;          % Maximum number of iterations of L-BFGS to run 
+  options.display = 'on';
+  options.useMex = 0;             % Bugfix: error: 'lbfgsC' undefined near line 559 column 25
+
+  [sae2OptTheta, cost] = minFunc( @(p) sparseAutoencoderCost(p, ...
+				    hiddenSizeL1, hiddenSizeL2, ...
+				    lambda, sparsityParam, ...
+				    beta, sae1Features), ...
+				sae2Theta, options);
+  save sae2OptTheta.mat sae2OptTheta
+  disp ("'sae2OptTheta' parameters saved in file 'sae2OptTheta.mat'.");
+endif
 
 
 % -------------------------------------------------------------------------
@@ -117,31 +147,46 @@ options.useMex = 0;             % Bugfix: error: 'lbfgsC' undefined near line 55
 [sae2Features] = feedForwardAutoencoder(sae2OptTheta, hiddenSizeL2, ...
                                         hiddenSizeL1, sae1Features);
 
-%  Randomly initialize the parameters
-saeSoftmaxTheta = 0.005 * randn(hiddenSizeL2 * numClasses, 1);
+%  Check if file 'saeSoftmaxOptTheta.mat' exist
+if (exist ("saeSoftmaxOptTheta.mat", "file"))
+  load saeSoftmaxOptTheta.mat;
+else
+  disp ("File 'saeSoftmaxOptTheta.mat' not found.");
+endif
+
+%  Check if var 'saeSoftmaxOptTheta' exist
+if (exist ("saeSoftmaxOptTheta", "var"))
+  disp ("'saeSoftmaxOptTheta' parameters loaded from file 'saeSoftmaxOptTheta.mat'.");
+else
+  disp ("Training the Softmax Classifier ...");
+                                        
+  %  Randomly initialize the parameters
+  saeSoftmaxTheta = 0.005 * randn(hiddenSizeL2 * numClasses, 1);
 
 
-%% ---------------------- YOUR CODE HERE  ---------------------------------
-%  Instructions: Train the softmax classifier, the classifier takes in
-%                input of dimension "hiddenSizeL2" corresponding to the
-%                hidden layer size of the 2nd layer.
-%
-%                You should store the optimal parameters in saeSoftmaxOptTheta 
-%
-%  NOTE: If you used softmaxTrain to complete this part of the exercise,
-%        set saeSoftmaxOptTheta = softmaxModel.optTheta(:);
+  %% ---------------------- YOUR CODE HERE  ---------------------------------
+  %  Instructions: Train the softmax classifier, the classifier takes in
+  %                input of dimension "hiddenSizeL2" corresponding to the
+  %                hidden layer size of the 2nd layer.
+  %
+  %                You should store the optimal parameters in saeSoftmaxOptTheta 
+  %
+  %  NOTE: If you used softmaxTrain to complete this part of the exercise,
+  %        set saeSoftmaxOptTheta = softmaxModel.optTheta(:);
 
-addpath minFunc/;               % Use minFunc to minimize the function
-options.maxIter = 400;          % Maximum number of iterations of L-BFGS to run 
-options.Method = 'lbfgs';       % Use L-BFGS to optimize softmax cost
-minFuncOptions.display = 'on';
-options.useMex = 0;             % Bugfix: error: 'lbfgsC' undefined near line 559 column 25
+  addpath minFunc/;               % Use minFunc to minimize the function
+  options.maxIter = 400;          % Maximum number of iterations of L-BFGS to run 
+  options.Method = 'lbfgs';       % Use L-BFGS to optimize softmax cost
+  minFuncOptions.display = 'on';
+  options.useMex = 0;             % Bugfix: error: 'lbfgsC' undefined near line 559 column 25
 
-[saeSoftmaxOptTheta, cost] = minFunc( @(p) softmaxCost(p, ...
-                                   numClasses, hiddenSizeL2, lambda, ...
-                                   sae2Features, trainLabels), ...                                   
-                              saeSoftmaxTheta, options);
-
+  [saeSoftmaxOptTheta, cost] = minFunc( @(p) softmaxCost(p, ...
+				    numClasses, hiddenSizeL2, lambda, ...
+				    sae2Features, trainLabels), ...                                   
+				saeSoftmaxTheta, options);
+  save saeSoftmaxOptTheta.mat saeSoftmaxOptTheta
+  disp ("'saeSoftmaxOptTheta' parameters saved in file 'saeSoftmaxOptTheta.mat'.");
+endif
 
 % -------------------------------------------------------------------------
 
@@ -164,22 +209,37 @@ stack{2}.b = sae2OptTheta(2*hiddenSizeL2*hiddenSizeL1+1:2*hiddenSizeL2*hiddenSiz
 [stackparams, netconfig] = stack2params(stack);
 stackedAETheta = [ saeSoftmaxOptTheta ; stackparams ];
 
-%% ---------------------- YOUR CODE HERE  ---------------------------------
-%  Instructions: Train the deep network, hidden size here refers to the '
-%                dimension of the input to the classifier, which corresponds 
-%                to "hiddenSizeL2".
+%  Check if file 'stackedAEOptTheta.mat' exist
+if (exist ("stackedAEOptTheta.mat", "file"))
+  load stackedAEOptTheta.mat;
+else
+  disp ("File 'stackedAEOptTheta.mat' not found.");
+endif
 
-addpath minFunc/;               % Use minFunc to minimize the function
-options.maxIter = 400;          % Maximum number of iterations of L-BFGS to run 
-options.Method = 'lbfgs';       % Use L-BFGS to optimize softmax cost
-minFuncOptions.display = 'on';
-options.useMex = 0;             % Bugfix: error: 'lbfgsC' undefined near line 559 column 25
+%  Check if var 'stackedAEOptTheta' exist
+if (exist ("stackedAEOptTheta", "var"))
+  disp ("'stackedAEOptTheta' parameters loaded from file 'stackedAEOptTheta.mat'.");
+else
+  disp ("Training the deep network ...");
 
-[stackedAEOptTheta, cost] = minFunc( @(p) stackedAECost(p, inputSize, ...
-				      hiddenSizeL2, numClasses, netconfig, ...
-				      lambda, trainData, trainLabels), ...                                   
-				  stackedAETheta, options);
+  %% ---------------------- YOUR CODE HERE  ---------------------------------
+  %  Instructions: Train the deep network, hidden size here refers to the '
+  %                dimension of the input to the classifier, which corresponds 
+  %                to "hiddenSizeL2".
 
+  addpath minFunc/;               % Use minFunc to minimize the function
+  options.maxIter = 400;          % Maximum number of iterations of L-BFGS to run 
+  options.Method = 'lbfgs';       % Use L-BFGS to optimize softmax cost
+  minFuncOptions.display = 'on';
+  options.useMex = 0;             % Bugfix: error: 'lbfgsC' undefined near line 559 column 25
+
+  [stackedAEOptTheta, cost] = minFunc( @(p) stackedAECost(p, inputSize, ...
+					hiddenSizeL2, numClasses, netconfig, ...
+					lambda, trainData, trainLabels), ...                                   
+				    stackedAETheta, options);
+  save stackedAEOptTheta.mat stackedAEOptTheta
+  disp ("'stackedAEOptTheta' parameters saved in file 'stackedAEOptTheta.mat'.");
+endif
 
 % -------------------------------------------------------------------------
 
